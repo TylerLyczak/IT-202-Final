@@ -1,8 +1,126 @@
+<!DOCTYPE html>
 <html>
   <head>
     <title></title>
     <meta content="">
-    <style></style>
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <style>
+    #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
   </head>
-  <body></body>
+  <body class="mdc-typography">
+    <h1 class="mdc-typography--headline3">Tyler Lyczak - tlyczak2 - Final Exam</h1>
+    <p class="mdc-typography--subtitle1"> If geolocation is not given by user, it defaults to UIC.</p>
+    <button class="mdc-button mdc-button--raised">Click for fun!</button>
+  </body>
+  <body>
+    <div id="map"></div>
+    <script>
+      var map;
+      var chicago = {lat: 41.8698, lng: -87.6496}
+      var userCoords = chicago;
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: chicago.lat, lng: chicago.lng},
+          zoom: 10
+        });
+
+        // Makes a new infor window
+        infoWindow = new google.maps.InfoWindow;
+
+        // Try HTML5 geolocation.
+        // Asks the user to allow access to there location
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            var pos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            userCoords.lat = position.coords.latitude;
+            userCoords.lng = position.coords.longitude;
+
+            infoWindow.setPosition(pos);
+            infoWindow.setContent('Location found.');
+            infoWindow.open(map);
+            map.setCenter(pos);
+            map.setZoom(13);
+          }, function() {
+            handleLocationError(true, infoWindow, map.getCenter());
+          });
+        } else {
+          // Browser doesn't support Geolocation
+          handleLocationError(false, infoWindow, map.getCenter());
+        }
+
+      // If the user doesn't allow there location, it will give an error
+      function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+        infoWindow.setPosition(pos);
+        infoWindow.setContent(browserHasGeolocation ?
+                              'Error: The Geolocation service failed.' :
+                              'Error: Your browser doesn\'t support geolocation.');
+        infoWindow.open(map);
+      }
+
+
+        $.get("https://data.cityofchicago.org/resource/9rg7-mz9y.json",
+        function(response) {
+          var data = response;
+          createMarkers(map, data);
+        });
+      }
+
+      function createMarkers (map, data) {
+        $.each(data, function(i,v) {
+          //console.log(v);
+          var location = {lat: parseFloat(v.latitude), lng: parseFloat(v.longitude)};
+          //var coordinates = {x: v.x_coordinate, y: v.y_coordinate};
+          var distanceVar = distance(userCoords.lat, userCoords.lng , location.lat, location.lng);
+          distanceVar = distanceVar.toFixed(2);
+          var distanceString = '<div class="info">' +
+          '<p><b>Police Station</b></p>' +
+          '<p><b>District Name</b>: ' + v.district_name + '</p>' +
+          '<p><b>Zip:</b>: ' + v.zip + '</p>' +
+          '<p><b>Distance from You</b>: ' + distanceVar + ' kilometers</p>' +
+          '</div>';
+
+          var marker = new google.maps.Marker({
+            position: location,
+            map: map,
+            title: v.district_name
+          });
+
+          var infowindow = new google.maps.InfoWindow({
+            content:distanceString
+          });
+
+          marker.addListener('click', function() {
+            infowindow.open(map, marker);
+          });
+
+
+      })};
+
+      function distance(lat, lng, lat0, lng0)  {
+        var deglen = 110.25;
+        var x = lat - lat0;
+        var y = (lng - lng0)* Math.cos(lat0);
+        return deglen*Math.sqrt(x*x + y*y)
+      }
+
+
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDFR6xz40awZdqt1pvi6zxE6AquU-Nn-Yc&callback=initMap"
+    async defer></script>
+  </body>
 </html>
