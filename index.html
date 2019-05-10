@@ -11,7 +11,6 @@
     #map {
         height: 100%;
       }
-      /* Optional: Makes the sample page fill the window. */
       html, body {
         height: 100%;
         margin: 0;
@@ -51,7 +50,13 @@
             userCoords.lng = position.coords.longitude;
 
             infoWindow.setPosition(pos);
-            infoWindow.setContent('Location found.');
+            //infoWindow.setContent('Location found.');
+            var contentString = '<div>' +
+            '<p><b>Location Found</b></p>' +
+            '<p><b>Latitude</b>: '+ position.coords.latitude + '</p>' +
+            '<p><b>Longitude</b>: '+ position.coords.longitude + '</p>' +
+            '</div>';
+            infoWindow.setContent(contentString);
             infoWindow.open(map);
             map.setCenter(pos);
             map.setZoom(13);
